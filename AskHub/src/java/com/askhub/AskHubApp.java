@@ -19,6 +19,14 @@ public class AskHubApp {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        boolean startApi = false;
+        for (String a : args) if ("--api".equals(a)) startApi = true;
+
+        if (startApi) {
+            // Start API server
+            new Thread(() -> com.askhub.api.ApiServer.main(new String[]{})).start();
+        }
+
         SwingUtilities.invokeLater(() -> {
             LoginFrame loginFrame = new LoginFrame();
             loginFrame.setVisible(true);

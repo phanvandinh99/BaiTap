@@ -19,6 +19,29 @@ public class CommentDAO {
                 if (rs.next()) {
                     comment.setId(rs.getInt(1));
                 }
+                // create notification for target owner
+                try {
+                    int ownerId = -1;
+                    if ("QUESTION".equalsIgnoreCase(comment.getTargetType())) {
+                        com.askhub.models.Question q = new com.askhub.dao.QuestionDAO().findById(comment.getTargetId());
+                        if (q != null) ownerId = q.getUserId();
+                    } else if ("ANSWER".equalsIgnoreCase(comment.getTargetType())) {
+                        com.askhub.models.Answer a = new com.askhub.dao.AnswerDAO().findById(comment.getTargetId());
+                        if (a != null) ownerId = a.getUserId();
+                    }
+                    if (ownerId > 0 && ownerId != comment.getUserId()) {
+                        com.askhub.dao.NotificationDAO nd = new com.askhub.dao.NotificationDAO();
+                        com.askhub.models.Notification n = new com.askhub.models.Notification();
+                        n.setUserId(ownerId);
+                        n.setType("NEW_COMMENT");
+                        n.setContent("New comment on your post.");
+                        n.setReferenceType(comment.getTargetType());
+                        n.setReferenceId(comment.getTargetId());
+                        nd.createNotification(n);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 return true;
             }
         } catch (SQLException e) {

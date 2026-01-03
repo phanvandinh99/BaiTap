@@ -20,6 +20,22 @@ public class AnswerDAO {
                     answer.setId(rs.getInt(1));
                 }
                 new QuestionDAO().incrementAnswerCount(answer.getQuestionId());
+                // create notification for question owner
+                try {
+                    Question q = new QuestionDAO().findById(answer.getQuestionId());
+                    if (q != null && q.getUserId() != answer.getUserId()) {
+                        com.askhub.dao.NotificationDAO nd = new com.askhub.dao.NotificationDAO();
+                        com.askhub.models.Notification n = new com.askhub.models.Notification();
+                        n.setUserId(q.getUserId());
+                        n.setType("NEW_ANSWER");
+                        n.setContent("Your question has a new answer.");
+                        n.setReferenceType("QUESTION");
+                        n.setReferenceId(q.getId());
+                        nd.createNotification(n);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 return true;
             }
         } catch (SQLException e) {
@@ -122,6 +138,23 @@ public class AnswerDAO {
                 stmt.executeUpdate();
             }
             conn.commit();
+            // notify answer author about acceptance
+            try {
+                Answer a = findById(answerId);
+                if (a != null) {
+                    int answerAuthor = a.getUserId();
+                    com.askhub.dao.NotificationDAO nd = new com.askhub.dao.NotificationDAO();
+                    com.askhub.models.Notification n = new com.askhub.models.Notification();
+                    n.setUserId(answerAuthor);
+                    n.setType("ACCEPTED_ANSWER");
+                    n.setContent("Your answer was accepted.");
+                    n.setReferenceType("ANSWER");
+                    n.setReferenceId(answerId);
+                    nd.createNotification(n);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             return true;
         } catch (SQLException e) {
             if (conn != null) {

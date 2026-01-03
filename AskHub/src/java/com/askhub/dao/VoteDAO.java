@@ -27,6 +27,27 @@ public class VoteDAO {
             if (rowsAffected > 0) {
                 updateTargetVoteCount(vote.getTargetType(), vote.getTargetId(),
                                     vote.getVoteType().equals("UPVOTE") ? 1 : -1);
+                // notify owner
+                try {
+                    int ownerId = -1;
+                    if (vote.getTargetType().equals("QUESTION")) {
+                        ownerId = new com.askhub.dao.QuestionDAO().findById(vote.getTargetId()).getUserId();
+                    } else if (vote.getTargetType().equals("ANSWER")) {
+                        ownerId = new com.askhub.dao.AnswerDAO().findById(vote.getTargetId()).getUserId();
+                    }
+                    if (ownerId > 0 && ownerId != vote.getUserId()) {
+                        com.askhub.dao.NotificationDAO nd = new com.askhub.dao.NotificationDAO();
+                        com.askhub.models.Notification n = new com.askhub.models.Notification();
+                        n.setUserId(ownerId);
+                        n.setType("VOTE");
+                        n.setContent("Someone voted on your post.");
+                        n.setReferenceType(vote.getTargetType());
+                        n.setReferenceId(vote.getTargetId());
+                        nd.createNotification(n);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 return true;
             }
         } catch (SQLException e) {
@@ -46,6 +67,27 @@ public class VoteDAO {
             if (rowsAffected > 0) {
                 updateTargetVoteCount(vote.getTargetType(), vote.getTargetId(),
                                     vote.getVoteType().equals("UPVOTE") ? 2 : -2);
+                // notify owner about vote change
+                try {
+                    int ownerId = -1;
+                    if (vote.getTargetType().equals("QUESTION")) {
+                        ownerId = new com.askhub.dao.QuestionDAO().findById(vote.getTargetId()).getUserId();
+                    } else if (vote.getTargetType().equals("ANSWER")) {
+                        ownerId = new com.askhub.dao.AnswerDAO().findById(vote.getTargetId()).getUserId();
+                    }
+                    if (ownerId > 0 && ownerId != vote.getUserId()) {
+                        com.askhub.dao.NotificationDAO nd = new com.askhub.dao.NotificationDAO();
+                        com.askhub.models.Notification n = new com.askhub.models.Notification();
+                        n.setUserId(ownerId);
+                        n.setType("VOTE");
+                        n.setContent("Someone changed their vote on your post.");
+                        n.setReferenceType(vote.getTargetType());
+                        n.setReferenceId(vote.getTargetId());
+                        nd.createNotification(n);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 return true;
             }
         } catch (SQLException e) {

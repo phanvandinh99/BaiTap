@@ -114,6 +114,17 @@ public class UserDAO {
         }
         return false;
     }
+    public boolean deactivateUser(int userId) {
+        String sql = "UPDATE users SET is_active = FALSE WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users ORDER BY created_at DESC";

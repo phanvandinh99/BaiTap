@@ -83,6 +83,18 @@ public class NotificationDAO {
         }
         return false;
     }
+    public boolean deleteNotification(int notificationId, int userId) {
+        String sql = "DELETE FROM notifications WHERE id = ? AND user_id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, notificationId);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     private Notification extractNotificationFromResultSet(ResultSet rs) throws SQLException {
         Notification notification = new Notification();
         notification.setId(rs.getInt("id"));

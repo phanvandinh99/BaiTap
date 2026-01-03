@@ -213,12 +213,18 @@ public class QuestionDAO {
         return false;
     }
     public boolean deleteQuestion(int questionId) {
+        // Get topic id first
+        Question q = findById(questionId);
+        int topicId = (q != null) ? q.getTopicId() : -1;
         String sql = "DELETE FROM questions WHERE id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, questionId);
             int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected > 0) {
+                if (topicId > 0) new TopicDAO().decrementQuestionCount(topicId);
+                return true;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

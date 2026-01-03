@@ -77,6 +77,42 @@ public class TopicDAO {
             e.printStackTrace();
         }
     }
+    public void decrementQuestionCount(int topicId) {
+        String sql = "UPDATE topics SET question_count = GREATEST(question_count - 1, 0) WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, topicId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public boolean updateTopic(Topic topic) {
+        String sql = "UPDATE topics SET name = ?, description = ?, slug = ? WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, topic.getName());
+            stmt.setString(2, topic.getDescription());
+            stmt.setString(3, topic.getSlug());
+            stmt.setInt(4, topic.getId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteTopic(int topicId) {
+        String sql = "DELETE FROM topics WHERE id = ? AND question_count = 0";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, topicId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     private Topic extractTopicFromResultSet(ResultSet rs) throws SQLException {
         Topic topic = new Topic();
         topic.setId(rs.getInt("id"));

@@ -1,53 +1,61 @@
-# NetBeans specific
-nbproject/private/
+# Build artifacts
+target/
 build/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
+out/
+bin/
 
-# Class files
+# Compiled class files
 *.class
 
-# Package files
+# Packages
 *.jar
 *.war
 *.ear
 
-# Log files
-*.log
-
-# IntelliJ IDEA
+# IDEs and editors
 .idea/
 *.iml
 *.iws
 *.ipr
-
-# Eclipse
+.vscode/
 .classpath
 .project
 .settings/
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
 
-# Mac
-.DS_Store
+# Generated sources
+generated/
+generated-sources/
+build/classes/
+target/classes/
 
-# Windows
-Thumbs.db
-
-# Build directories
-target/
-bin/
-
-# Temporary files
+# Logs and temp files
+*.log
 *.tmp
 *.bak
 *.swp
-*~.nib
+*~
 
-# Database
-*.db
+# OS files
+.DS_Store
+Thumbs.db
 
-# IDE specific
-.vscode/
+# Keystores and credentials
+*.keystore
+*.jks
 
-*.md
+# Local database files (ignore runtime DB files, keep schema.sql)
+*.sqlite
+*.db3
+*-journal
+
+# Maven / IntelliJ specific
+.mvn/
+.settings/
+
+# Ignore compiled/generated resources inside build directories
+/build/
+/target/
