@@ -1,5 +1,6 @@
 package com.askhub.dao;
 import com.askhub.models.Answer;
+import com.askhub.models.Question;
 import com.askhub.models.User;
 import com.askhub.utils.DatabaseConfig;
 import java.sql.*;

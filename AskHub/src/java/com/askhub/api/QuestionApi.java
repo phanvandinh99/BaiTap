@@ -9,7 +9,9 @@ import com.askhub.models.Question;
 import io.javalin.Javalin;
 import io.javalin.http.Handler;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class QuestionApi {
     private static final QuestionDAO questionDAO = new QuestionDAO();
@@ -65,7 +67,11 @@ public class QuestionApi {
         // get answers and comments
         List<Answer> answers = answerDAO.getAnswersByQuestion(id);
         List<Comment> comments = commentDAO.getCommentsByTarget("QUESTION", id);
-        ctx.json(new Object(){ public Question question = q; public List<Answer> answers = answers; public List<Comment> comments = comments; });
+        Map<String, Object> result = new HashMap<>();
+        result.put("question", q);
+        result.put("answers", answers);
+        result.put("comments", comments);
+        ctx.json(result);
     };
 
     public static Handler updateQuestion = ctx -> {
