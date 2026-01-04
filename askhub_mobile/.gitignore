@@ -1,0 +1,131 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.pyo
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+*.swiftpm
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.flutter-plugins
+.pub-cache/
+.pub/
+/build/
+/coverage/
+coverage/
+.packages
+pubspec.lock
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+app.*.mapping.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/app/.gradle
+/android/app/local.properties
+/android/.gradle
+/android/build/
+android/local.properties
+android/.gradle/
+*.gradle~
+
+# iOS build artifacts
+/ios/Flutter/Flutter.framework
+/ios/.symlinks/
+/ios/Flutter/flutter_export_environment.sh
+/ios/**/*.pbxproj.swp
+/ios/**/*.xcworkspace/
+/ios/Podfile.lock
+/ios/Pods/
+
+# macOS build artifacts
+/macos/Flutter/Flutter.framework
+/macos/.symlinks/
+/macos/Flutter/flutter_export_environment.sh
+/macos/Podfile.lock
+/macos/Pods/
+
+# Web build artifacts
+/web/canvaskit/
+
+# Windows build artifacts
+windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+windows/flutter/ephemeral/
+
+# Linux build artifacts
+linux/flutter/generated_plugins.cmake
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/ephemeral/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Gradle
+**/gradle-wrapper.jar
+**/gradlew
+**/gradlew.bat
+
+# Local development environment
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Xcode
+**/xcuserdata/
+**/xcshareddata/
+**/DerivedData/
+**/*.xcarchive
+**/*.ipa
