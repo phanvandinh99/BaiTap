@@ -47,7 +47,12 @@ public class UserApi {
             ctx.status(400).json("username and password required");
             return;
         }
-        User user = userDAO.authenticate(req.username, req.password);
+        User user = userDAO.findByUsername(req.username);
+        if (user == null) {
+            ctx.status(401).json("invalid_credentials");
+            return;
+        }
+        user = userDAO.authenticate(req.username, req.password);
         if (user != null) {
             user.setPassword(null);
             ctx.json(user);
