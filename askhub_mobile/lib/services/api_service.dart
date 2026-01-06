@@ -42,7 +42,9 @@ class ApiService {
   // Check if current user is admin
   static Future<bool> isAdmin() async {
     final role = await getCurrentUserRole();
-    return role == 'ADMIN';
+    final isAdmin = role != null && role.toUpperCase() == 'ADMIN';
+    print('isAdmin check: role = $role, isAdmin = $isAdmin');
+    return isAdmin;
   }
 
   // Clear session
@@ -59,11 +61,13 @@ class ApiService {
     if (!isAdmin) {
       isAdmin = await ApiService.isAdmin();
     }
-    return {
+    final headers = <String, String>{
       'Content-Type': 'application/json',
       if (userId != null) 'X-User-Id': userId.toString(),
       if (isAdmin) 'X-Admin': 'true',
     };
+    print('_getHeaders: userId = $userId, isAdmin = $isAdmin, headers = $headers');
+    return headers;
   }
 
   // User APIs
@@ -97,9 +101,15 @@ class ApiService {
     if (response.statusCode == 200) {
       final user = json.decode(response.body);
       await setCurrentUserId(user['id']);
-      // Save user role for admin check
+      // Save user role for admin check - normalize to uppercase
       if (user['role'] != null) {
-        await setCurrentUserRole(user['role']);
+        final role = user['role'].toString().toUpperCase();
+        await setCurrentUserRole(role);
+        print('Login: Saved user role = $role, userId = ${user['id']}');
+      } else {
+        // Default to USER if role is not provided
+        await setCurrentUserRole('USER');
+        print('Login: No role provided, defaulting to USER');
       }
       return user;
     } else {
@@ -113,7 +123,9 @@ class ApiService {
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      throw Exception('Failed to get user');
+      final errorBody = response.body;
+      print('getUser failed: status=${response.statusCode}, body=$errorBody, headers=$headers');
+      throw Exception('Failed to get user: ${response.statusCode} - $errorBody');
     }
   }
 

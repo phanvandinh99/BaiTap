@@ -15,6 +15,7 @@ class ProfilePageState extends State<ProfilePage> {
   late Future<Map<String, dynamic>> _userFuture;
   bool _isEditing = false;
   bool _isSaving = false;
+  bool _avatarImageError = false;
 
   late TextEditingController _fullNameController;
   late TextEditingController _bioController;
@@ -30,6 +31,8 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   void _loadUserData() {
+    // Reset avatar error flag when loading new data
+    _avatarImageError = false;
     _userFuture = _apiService.getUser(widget.userId).catchError((error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +69,7 @@ class ProfilePageState extends State<ProfilePage> {
         setState(() {
           _isEditing = false;
           _isSaving = false;
+          _avatarImageError = false;
           _userFuture = _apiService.getUser(widget.userId);
         });
         if (mounted) {
@@ -229,25 +233,46 @@ class ProfilePageState extends State<ProfilePage> {
                             ),
                           ],
                         ),
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white,
-                          backgroundImage: (user['avatarUrl'] != null &&
-                                  user['avatarUrl'].toString().isNotEmpty)
-                              ? NetworkImage(user['avatarUrl'].toString())
-                              : null,
-                          onBackgroundImageError: (exception, stackTrace) {
-                            // Handle image loading error silently
-                          },
-                          child: (user['avatarUrl'] == null ||
-                                  user['avatarUrl'].toString().isEmpty)
-                              ? Icon(
+                        child: (user['avatarUrl'] != null &&
+                                user['avatarUrl'].toString().isNotEmpty &&
+                                !_avatarImageError)
+                            ? ClipOval(
+                                child: Image.network(
+                                  user['avatarUrl'].toString(),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Set error flag and show icon
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      if (mounted) {
+                                        setState(() {
+                                          _avatarImageError = true;
+                                        });
+                                      }
+                                    });
+                                    return Container(
+                                      width: 100,
+                                      height: 100,
+                                      color: Colors.white,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Colors.blue.shade600,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                            : CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.white,
+                                child: Icon(
                                   Icons.person,
                                   size: 50,
                                   color: Colors.blue.shade600,
-                                )
-                              : null,
-                        ),
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -341,7 +366,7 @@ class ProfilePageState extends State<ProfilePage> {
                               icon: Icons.calendar_today,
                               iconColor: Colors.purple,
                               title: 'Joined',
-                              value: user['createdAt'] ?? 'Unknown',
+                              value: user['createdAt']?.toString() ?? 'Unknown',
                             ),
                           ],
                         ),
