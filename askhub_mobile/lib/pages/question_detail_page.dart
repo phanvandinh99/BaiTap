@@ -14,8 +14,9 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
   final ApiService _apiService = ApiService();
   late Future<Map<String, dynamic>> _questionFuture;
   late Future<List<dynamic>> _answersFuture;
-  bool _isOwner = false;
+  bool _isQuestionOwner = false;
   int? _currentUserId;
+  Map<String, dynamic>? _questionData;
 
   @override
   void initState() {
@@ -30,8 +31,10 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   void _loadData() {
-    _questionFuture = _apiService.getQuestion(widget.questionId);
-    _answersFuture = _apiService.getAnswers(widget.questionId);
+    setState(() {
+      _questionFuture = _apiService.getQuestion(widget.questionId);
+      _answersFuture = _apiService.getAnswers(widget.questionId);
+    });
   }
 
   Future<void> _deleteQuestion(int questionId) async {
@@ -113,9 +116,15 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
           }
 
           final question = snapshot.data!;
-          _isOwner = _currentUserId == question['userId'];
+          _questionData = question;
+          _isQuestionOwner = _currentUserId == question['userId'];
 
-          return SingleChildScrollView(
+          return RefreshIndicator(
+            onRefresh: () async {
+              _loadData();
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -143,7 +152,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                               ),
                             ),
                           ),
-                          if (_isOwner)
+                          if (_isQuestionOwner)
                             PopupMenuButton(
                               onSelected: (value) {
                                 if (value == 'delete') {
@@ -263,30 +272,60 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                             itemCount: answers.length,
                             itemBuilder: (context, index) {
                               final answer = answers[index];
+                              final isAnswerOwner = _currentUserId == answer['userId'];
+                              final canAccept = _isQuestionOwner && !answer['isAccepted'];
+                              final canEdit = isAnswerOwner;
+                              final canDelete = isAnswerOwner; // Admin check can be added later
+                              
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 12),
+                                color: answer['isAccepted'] == true 
+                                    ? Colors.green.shade50 
+                                    : null,
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
+                                      // Answer Content
                                       Text(
                                         answer['content'] ?? 'No content',
                                         style: const TextStyle(fontSize: 14),
                                       ),
-                                      const SizedBox(height: 8),
+                                      const SizedBox(height: 12),
+                                      
+                                      // Answer Footer
                                       Row(
                                         children: [
-                                          Icon(Icons.person, size: 14, color: Colors.grey.shade600),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            answer['userName'] ?? 'Unknown',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey.shade600,
+                                          // Author Info
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.person, size: 14, color: Colors.grey.shade600),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  answer['username'] ?? answer['userName'] ?? 'Unknown',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                // Vote Count
+                                                Icon(Icons.thumb_up, size: 14, color: Colors.grey.shade600),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '${answer['voteCount'] ?? 0}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          const Spacer(),
+                                          
+                                          // Accepted Badge
                                           if (answer['isAccepted'] == true)
                                             Container(
                                               padding: const EdgeInsets.symmetric(
@@ -294,23 +333,25 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                                                 vertical: 4,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: Colors.green.shade50,
+                                                color: Colors.green.shade100,
                                                 border: Border.all(color: Colors.green),
                                                 borderRadius: BorderRadius.circular(4),
                                               ),
                                               child: Row(
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Icon(
-                                                    Icons.check,
-                                                    size: 12,
-                                                    color: Colors.green,
+                                                    Icons.check_circle,
+                                                    size: 14,
+                                                    color: Colors.green.shade700,
                                                   ),
                                                   const SizedBox(width: 4),
-                                                  const Text(
+                                                  Text(
                                                     'Accepted',
                                                     style: TextStyle(
                                                       fontSize: 11,
-                                                      color: Colors.green,
+                                                      color: Colors.green.shade700,
+                                                      fontWeight: FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -318,6 +359,43 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                                             ),
                                         ],
                                       ),
+                                      
+                                      // Action Buttons
+                                      if (canAccept || canEdit || canDelete) ...[
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            // Accept Button (only question owner)
+                                            if (canAccept)
+                                              TextButton.icon(
+                                                onPressed: () => _acceptAnswer(answer['id']),
+                                                icon: const Icon(Icons.check_circle_outline, size: 16),
+                                                label: const Text('Accept'),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: Colors.green,
+                                                ),
+                                              ),
+                                            // Edit Button (only answer owner)
+                                            if (canEdit)
+                                              TextButton.icon(
+                                                onPressed: () => _editAnswer(answer),
+                                                icon: const Icon(Icons.edit, size: 16),
+                                                label: const Text('Edit'),
+                                              ),
+                                            // Delete Button (only answer owner)
+                                            if (canDelete)
+                                              TextButton.icon(
+                                                onPressed: () => _deleteAnswer(answer['id']),
+                                                icon: const Icon(Icons.delete, size: 16),
+                                                label: const Text('Delete'),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: Colors.red,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -331,10 +409,12 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                 ),
               ],
             ),
-          );
+          ),
+        );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _currentUserId != null
+          ? FloatingActionButton(
         onPressed: () {
           // Open answer form
           showDialog(
@@ -349,8 +429,101 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
         },
         tooltip: 'Post Answer',
         child: const Icon(Icons.reply),
+      )
+      : null,
+    );
+  }
+
+  Future<void> _acceptAnswer(int answerId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Accept Answer'),
+        content: const Text('Mark this answer as accepted?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Accept'),
+          ),
+        ],
       ),
     );
+
+    if (confirmed != true) return;
+
+    try {
+      await _apiService.acceptAnswer(answerId);
+      if (mounted) {
+        _loadData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Answer accepted')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _editAnswer(Map<String, dynamic> answer) async {
+    showDialog(
+      context: context,
+      builder: (_) => AnswerFormDialog(
+        questionId: widget.questionId,
+        answerId: answer['id'],
+        initialContent: answer['content'],
+        onSave: () {
+          _loadData();
+        },
+      ),
+    );
+  }
+
+  Future<void> _deleteAnswer(int answerId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Answer'),
+        content: const Text('Are you sure? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await _apiService.deleteAnswer(answerId);
+      if (mounted) {
+        _loadData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Answer deleted')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   Color _getStatusColor(String? status) {
@@ -371,11 +544,15 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
 
 class AnswerFormDialog extends StatefulWidget {
   final int questionId;
+  final int? answerId; // null for create, non-null for edit
+  final String? initialContent;
   final VoidCallback onSave;
 
   const AnswerFormDialog({
     super.key,
     required this.questionId,
+    this.answerId,
+    this.initialContent,
     required this.onSave,
   });
 
@@ -388,10 +565,12 @@ class AnswerFormDialogState extends State<AnswerFormDialog> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  bool get isEditMode => widget.answerId != null;
+
   @override
   void initState() {
     super.initState();
-    _contentController = TextEditingController();
+    _contentController = TextEditingController(text: widget.initialContent ?? '');
   }
 
   @override
@@ -400,7 +579,7 @@ class AnswerFormDialogState extends State<AnswerFormDialog> {
     super.dispose();
   }
 
-  Future<void> _postAnswer() async {
+  Future<void> _saveAnswer() async {
     if (_contentController.text.trim().isEmpty) {
       setState(() => _errorMessage = 'Answer cannot be empty');
       return;
@@ -412,16 +591,29 @@ class AnswerFormDialogState extends State<AnswerFormDialog> {
     });
 
     try {
-      await ApiService().createAnswer(
-        widget.questionId,
-        _contentController.text.trim(),
-      );
+      if (isEditMode) {
+        // Update existing answer
+        await ApiService().updateAnswer(
+          widget.answerId!,
+          _contentController.text.trim(),
+        );
+      } else {
+        // Create new answer
+        await ApiService().createAnswer(
+          widget.questionId,
+          _contentController.text.trim(),
+        );
+      }
 
       if (mounted) {
         widget.onSave();
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Answer posted successfully')),
+          SnackBar(
+            content: Text(isEditMode 
+                ? 'Answer updated successfully' 
+                : 'Answer posted successfully'),
+          ),
         );
       }
     } catch (e) {
@@ -437,7 +629,7 @@ class AnswerFormDialogState extends State<AnswerFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Post Your Answer'),
+      title: Text(isEditMode ? 'Edit Answer' : 'Post Your Answer'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -484,14 +676,14 @@ class AnswerFormDialogState extends State<AnswerFormDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _isLoading ? null : _postAnswer,
+          onPressed: _isLoading ? null : _saveAnswer,
           child: _isLoading
               ? const SizedBox(
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Post'),
+              : Text(isEditMode ? 'Update' : 'Post'),
         ),
       ],
     );
