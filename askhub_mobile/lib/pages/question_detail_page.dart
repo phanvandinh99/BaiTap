@@ -343,23 +343,24 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                                       ? int.tryParse(answer['userId']) 
                                       : null);
                               final isAnswerOwner = _currentUserId != null && answerUserId == _currentUserId;
-                              final canAccept = _isQuestionOwner && !answer['isAccepted'];
+                              final isAccepted = answer['isAccepted'] == true;
+                              final canAccept = _isQuestionOwner && !isAccepted;
                               final canEdit = isAnswerOwner;
                               final canDelete = isAnswerOwner || _isAdmin;
                               
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 16),
-                                elevation: answer['isAccepted'] == true ? 3 : 2,
+                                elevation: isAccepted ? 3 : 2,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  side: answer['isAccepted'] == true
+                                  side: isAccepted
                                       ? BorderSide(
                                           color: Colors.green.shade300,
                                           width: 2,
                                         )
                                       : BorderSide.none,
                                 ),
-                                color: answer['isAccepted'] == true 
+                                color: isAccepted 
                                     ? Colors.green.shade50 
                                     : Colors.white,
                                 child: Padding(
@@ -395,7 +396,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                                           ),
                                           
                                           // Accepted Badge
-                                          if (answer['isAccepted'] == true)
+                                          if (isAccepted)
                                             Container(
                                               padding: const EdgeInsets.symmetric(
                                                 horizontal: 8,
