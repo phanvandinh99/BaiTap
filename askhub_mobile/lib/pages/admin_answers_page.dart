@@ -147,7 +147,7 @@ class AdminAnswersPageState extends State<AdminAnswersPage> {
                               child: const Icon(Icons.reply, color: Colors.green),
                             ),
                             title: Text(
-                              answer['questionTitle'] ?? 'Unknown Question',
+                              answer['questionTitle']?.toString() ?? 'Unknown Question',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -158,7 +158,7 @@ class AdminAnswersPageState extends State<AdminAnswersPage> {
                               children: [
                                 const SizedBox(height: 4),
                                 Text(
-                                  answer['content'] ?? '',
+                                  answer['content']?.toString() ?? '',
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -168,7 +168,7 @@ class AdminAnswersPageState extends State<AdminAnswersPage> {
                                     Icon(Icons.person, size: 14, color: Colors.grey.shade600),
                                     const SizedBox(width: 4),
                                     Text(
-                                      answer['username'] ?? answer['userName'] ?? 'Unknown',
+                                      (answer['username'] ?? answer['userName'])?.toString() ?? 'Unknown',
                                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                     ),
                                     if (answer['isAccepted'] == true) ...[
@@ -198,7 +198,9 @@ class AdminAnswersPageState extends State<AdminAnswersPage> {
                             ),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteAnswer(answer['id']),
+                              onPressed: () => _deleteAnswer(
+                                answer['id'] is int ? answer['id'] : int.tryParse(answer['id']?.toString() ?? '0') ?? 0,
+                              ),
                             ),
                           ),
                         );

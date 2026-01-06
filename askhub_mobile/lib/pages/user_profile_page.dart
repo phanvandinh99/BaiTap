@@ -91,24 +91,41 @@ class UserProfilePageState extends State<UserProfilePage> {
                   ),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundImage: (user['avatarUrl'] != null &&
-                                user['avatarUrl']!.isNotEmpty)
-                            ? NetworkImage(user['avatarUrl'])
-                            : null,
-                        child: (user['avatarUrl'] == null ||
-                                user['avatarUrl']!.isEmpty)
-                            ? Icon(
-                                Icons.person,
-                                size: 48,
-                                color: Colors.green.shade600,
+                      ClipOval(
+                        child: (user['avatarUrl'] != null &&
+                                user['avatarUrl'].toString().isNotEmpty)
+                            ? Image.network(
+                                user['avatarUrl'].toString(),
+                                width: 96,
+                                height: 96,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 96,
+                                    height: 96,
+                                    color: Colors.white,
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 48,
+                                      color: Colors.green.shade600,
+                                    ),
+                                  );
+                                },
                               )
-                            : null,
+                            : Container(
+                                width: 96,
+                                height: 96,
+                                color: Colors.white,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 48,
+                                  color: Colors.green.shade600,
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        user['username'] ?? 'Unknown',
+                        user['username']?.toString() ?? 'Unknown',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -117,7 +134,7 @@ class UserProfilePageState extends State<UserProfilePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        user['email'] ?? '',
+                        user['email']?.toString() ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -133,13 +150,13 @@ class UserProfilePageState extends State<UserProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (user['fullName'] != null && user['fullName']!.isNotEmpty)
+                      if (user['fullName'] != null && user['fullName'].toString().isNotEmpty)
                         Card(
                           child: ListTile(
                             leading: const Icon(Icons.person),
                             title: const Text('Name'),
                             subtitle: Text(
-                              user['fullName'] ?? 'Not set',
+                              user['fullName']?.toString() ?? 'Not set',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -147,15 +164,15 @@ class UserProfilePageState extends State<UserProfilePage> {
                           ),
                         ),
                       if (user['fullName'] != null &&
-                          user['fullName']!.isNotEmpty)
+                          user['fullName'].toString().isNotEmpty)
                         const SizedBox(height: 12),
-                      if (user['bio'] != null && user['bio']!.isNotEmpty)
+                      if (user['bio'] != null && user['bio'].toString().isNotEmpty)
                         Card(
                           child: ListTile(
                             leading: const Icon(Icons.description),
                             title: const Text('Bio'),
                             subtitle: Text(
-                              user['bio'] ?? 'No bio',
+                              user['bio']?.toString() ?? 'No bio',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -164,14 +181,14 @@ class UserProfilePageState extends State<UserProfilePage> {
                             ),
                           ),
                         ),
-                      if (user['bio'] != null && user['bio']!.isNotEmpty)
+                      if (user['bio'] != null && user['bio'].toString().isNotEmpty)
                         const SizedBox(height: 12),
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.calendar_today),
                           title: const Text('Joined'),
                           subtitle: Text(
-                            user['createdAt'] ?? 'Unknown',
+                            _formatDate(user['createdAt']),
                             style: const TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
@@ -233,6 +250,29 @@ class UserProfilePageState extends State<UserProfilePage> {
       return value.toInt();
     }
     return 0;
+  }
+
+  String _formatDate(dynamic dateValue) {
+    if (dateValue == null) return 'Unknown';
+    // Handle timestamp (milliseconds since epoch)
+    if (dateValue is int) {
+      try {
+        final date = DateTime.fromMillisecondsSinceEpoch(dateValue);
+        return '${date.day}/${date.month}/${date.year}';
+      } catch (e) {
+        return dateValue.toString();
+      }
+    }
+    // Handle string date
+    if (dateValue is String) {
+      try {
+        final date = DateTime.parse(dateValue);
+        return '${date.day}/${date.month}/${date.year}';
+      } catch (e) {
+        return dateValue;
+      }
+    }
+    return dateValue.toString();
   }
 
   Widget _buildStatCard({

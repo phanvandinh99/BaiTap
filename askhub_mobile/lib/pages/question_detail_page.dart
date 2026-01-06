@@ -182,7 +182,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              question['title'] ?? 'No title',
+                              question['title']?.toString() ?? 'No title',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -213,7 +213,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        question['content'] ?? 'No content',
+                        question['content']?.toString() ?? 'No content',
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 12),
@@ -222,14 +222,14 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                           Icon(Icons.person, size: 16, color: Colors.grey.shade600),
                           const SizedBox(width: 4),
                           Text(
-                            question['username'] ?? question['userName'] ?? 'Unknown',
+                            (question['username'] ?? question['userName'])?.toString() ?? 'Unknown',
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                           const SizedBox(width: 16),
                           Icon(Icons.calendar_today, size: 16, color: Colors.grey.shade600),
                           const SizedBox(width: 4),
                           Text(
-                            _formatDate(question['createdAt']),
+                            _formatDate(question['createdAt']?.toString()),
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                           const SizedBox(width: 16),
@@ -248,16 +248,16 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(question['status']).withValues(alpha: 0.2),
+                              color: _getStatusColor(question['status']?.toString()).withValues(alpha: 0.2),
                               border: Border.all(
-                                color: _getStatusColor(question['status']),
+                                color: _getStatusColor(question['status']?.toString()),
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              (question['status'] ?? 'open').toUpperCase(),
+                              (question['status']?.toString() ?? 'open').toUpperCase(),
                               style: TextStyle(
-                                color: _getStatusColor(question['status']),
+                                color: _getStatusColor(question['status']?.toString()),
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -369,7 +369,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                                     children: [
                                       // Answer Content
                                       Text(
-                                        answer['content'] ?? 'No content',
+                                        answer['content']?.toString() ?? 'No content',
                                         style: const TextStyle(fontSize: 14),
                                       ),
                                       const SizedBox(height: 12),
@@ -384,7 +384,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                                                 Icon(Icons.person, size: 14, color: Colors.grey.shade600),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  answer['username'] ?? answer['userName'] ?? 'Unknown',
+                                                  (answer['username'] ?? answer['userName'])?.toString() ?? 'Unknown',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey.shade600,
@@ -1045,7 +1045,7 @@ class _CommentsSectionState extends State<_CommentsSection> {
                       children: [
                         // Comment Content
                         Text(
-                          comment['content'] ?? '',
+                          comment['content']?.toString() ?? '',
                           style: const TextStyle(fontSize: 13),
                         ),
                         const SizedBox(height: 6),
@@ -1055,7 +1055,7 @@ class _CommentsSectionState extends State<_CommentsSection> {
                             Icon(Icons.person, size: 12, color: Colors.grey.shade600),
                             const SizedBox(width: 4),
                             Text(
-                              comment['username'] ?? 'Unknown',
+                              comment['username']?.toString() ?? 'Unknown',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey.shade600,
@@ -1079,7 +1079,9 @@ class _CommentsSectionState extends State<_CommentsSection> {
                                 ),
                               if (isCommentOwner) const SizedBox(width: 4),
                               TextButton(
-                                onPressed: () => _deleteComment(comment['id']),
+                                onPressed: () => _deleteComment(
+                                  comment['id'] is int ? comment['id'] : int.tryParse(comment['id']?.toString() ?? '0') ?? 0,
+                                ),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,

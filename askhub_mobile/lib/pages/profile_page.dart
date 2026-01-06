@@ -366,7 +366,7 @@ class ProfilePageState extends State<ProfilePage> {
                               icon: Icons.calendar_today,
                               iconColor: Colors.purple,
                               title: 'Joined',
-                              value: user['createdAt']?.toString() ?? 'Unknown',
+                              value: _formatDate(user['createdAt']),
                             ),
                           ],
                         ),
@@ -377,6 +377,29 @@ class ProfilePageState extends State<ProfilePage> {
         },
       ),
     );
+  }
+
+  String _formatDate(dynamic dateValue) {
+    if (dateValue == null) return 'Unknown';
+    // Handle timestamp (milliseconds since epoch)
+    if (dateValue is int) {
+      try {
+        final date = DateTime.fromMillisecondsSinceEpoch(dateValue);
+        return '${date.day}/${date.month}/${date.year}';
+      } catch (e) {
+        return dateValue.toString();
+      }
+    }
+    // Handle string date
+    if (dateValue is String) {
+      try {
+        final date = DateTime.parse(dateValue);
+        return '${date.day}/${date.month}/${date.year}';
+      } catch (e) {
+        return dateValue;
+      }
+    }
+    return dateValue.toString();
   }
 
   Widget _buildInfoCard({

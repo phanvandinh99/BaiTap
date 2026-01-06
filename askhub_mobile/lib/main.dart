@@ -579,7 +579,7 @@ class QuestionsListPageState extends State<QuestionsListPage> {
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(
-                      question['title'] ?? 'No title',
+                      question['title']?.toString() ?? 'No title',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Column(
@@ -587,7 +587,7 @@ class QuestionsListPageState extends State<QuestionsListPage> {
                       children: [
                         const SizedBox(height: 4),
                         Text(
-                          question['content'] ?? 'No content',
+                          question['content']?.toString() ?? 'No content',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -597,7 +597,7 @@ class QuestionsListPageState extends State<QuestionsListPage> {
                             Icon(Icons.person, size: 14, color: Colors.grey.shade600),
                             const SizedBox(width: 4),
                             Text(
-                              question['username'] ?? question['userName'] ?? 'Unknown',
+                              (question['username'] ?? question['userName'])?.toString() ?? 'Unknown',
                               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                             ),
                             const SizedBox(width: 16),

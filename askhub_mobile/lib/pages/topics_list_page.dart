@@ -158,16 +158,18 @@ class TopicsListPageState extends State<TopicsListPage> {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.blue,
                                 child: Text(
-                                  topic['name']?[0].toUpperCase() ?? '?',
+                                  (topic['name']?.toString() ?? '?').isNotEmpty 
+                                      ? topic['name'].toString()[0].toUpperCase() 
+                                      : '?',
                                   style: const TextStyle(color: Colors.white),
                                 ),
                               ),
                               title: Text(
-                                topic['name'] ?? 'Unknown',
+                                topic['name']?.toString() ?? 'Unknown',
                                 style: const TextStyle(fontWeight: FontWeight.w600),
                               ),
                               subtitle: Text(
-                                topic['description'] ?? 'No description',
+                                topic['description']?.toString() ?? 'No description',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontSize: 13),
@@ -407,19 +409,19 @@ class TopicDetailPageState extends State<TopicDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        topic['name'] ?? 'Unknown Topic',
+                        topic['name']?.toString() ?? 'Unknown Topic',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      if (topic['description'] != null && topic['description']!.isNotEmpty)
+                      if (topic['description'] != null && topic['description'].toString().isNotEmpty)
                         Column(
                           children: [
                             const SizedBox(height: 8),
                             Text(
-                              topic['description'],
+                              topic['description'].toString(),
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.white70,
@@ -472,11 +474,11 @@ class TopicDetailPageState extends State<TopicDetailPage> {
                             return Card(
                               child: ListTile(
                                 title: Text(
-                                  question['title'] ?? 'No title',
+                                  question['title']?.toString() ?? 'No title',
                                   style: const TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 subtitle: Text(
-                                  question['content'] ?? 'No content',
+                                  question['content']?.toString() ?? 'No content',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),

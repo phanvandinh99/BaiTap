@@ -101,12 +101,17 @@ class NotificationsPageState extends State<NotificationsPage> {
   void _handleNotificationTap(dynamic notification) {
     // Mark as read when tapped
     if (notification['isRead'] != true) {
-      _markAsRead(notification['id']);
+      final notifId = notification['id'] is int 
+          ? notification['id'] 
+          : int.tryParse(notification['id']?.toString() ?? '0') ?? 0;
+      _markAsRead(notifId);
     }
 
     // Navigate based on reference type
-    final referenceType = notification['referenceType'];
-    final referenceId = notification['referenceId'];
+    final referenceType = notification['referenceType']?.toString();
+    final referenceId = notification['referenceId'] is int 
+        ? notification['referenceId'] 
+        : int.tryParse(notification['referenceId']?.toString() ?? '');
 
     if (referenceType == 'QUESTION' && referenceId != null) {
       Navigator.push(
@@ -276,13 +281,16 @@ class NotificationsPageState extends State<NotificationsPage> {
                           itemCount: _notifications.length,
                           itemBuilder: (context, index) {
                             final notification = _notifications[index];
-                            final isRead = notification['isRead'] == true;
-                            final type = notification['type'];
+                            final isRead = notification['isRead'] == true || notification['read'] == true;
+                            final type = notification['type']?.toString();
                             final color = _getNotificationColor(type);
                             final icon = _getNotificationIcon(type);
 
+                            final notifId = notification['id'] is int 
+                                ? notification['id'] 
+                                : int.tryParse(notification['id']?.toString() ?? '0') ?? 0;
                             return Dismissible(
-                              key: Key('notification_${notification['id']}'),
+                              key: Key('notification_$notifId'),
                               direction: DismissDirection.endToStart,
                               background: Container(
                                 alignment: Alignment.centerRight,
@@ -297,7 +305,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                 ),
                               ),
                               onDismissed: (direction) {
-                                _deleteNotification(notification['id']);
+                                _deleteNotification(notifId);
                               },
                               child: Card(
                                 margin: const EdgeInsets.symmetric(
@@ -342,7 +350,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                notification['content'] ?? '',
+                                                notification['content']?.toString() ?? '',
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: isRead
@@ -362,7 +370,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                                   const SizedBox(width: 4),
                                                   Text(
                                                     _formatDate(
-                                                        notification['createdAt']),
+                                                        notification['createdAt']?.toString()),
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       color: Colors.grey.shade600,
@@ -389,8 +397,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                           icon: const Icon(Icons.close,
                                               size: 18, color: Colors.grey),
                                           onPressed: () =>
-                                              _deleteNotification(
-                                                  notification['id']),
+                                              _deleteNotification(notifId),
                                           padding: EdgeInsets.zero,
                                           constraints: const BoxConstraints(),
                                         ),

@@ -128,7 +128,7 @@ class AdminQuestionsPageState extends State<AdminQuestionsPage> {
                               child: const Icon(Icons.question_answer, color: Colors.blue),
                             ),
                             title: Text(
-                              question['title'] ?? 'No title',
+                              question['title']?.toString() ?? 'No title',
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Column(
@@ -136,7 +136,7 @@ class AdminQuestionsPageState extends State<AdminQuestionsPage> {
                               children: [
                                 const SizedBox(height: 4),
                                 Text(
-                                  question['content'] ?? '',
+                                  question['content']?.toString() ?? '',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -146,7 +146,7 @@ class AdminQuestionsPageState extends State<AdminQuestionsPage> {
                                     Icon(Icons.person, size: 14, color: Colors.grey.shade600),
                                     const SizedBox(width: 4),
                                     Text(
-                                      question['username'] ?? question['userName'] ?? 'Unknown',
+                                      (question['username'] ?? question['userName'])?.toString() ?? 'Unknown',
                                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                     ),
                                     const SizedBox(width: 16),
@@ -163,8 +163,8 @@ class AdminQuestionsPageState extends State<AdminQuestionsPage> {
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => _deleteQuestion(
-                                question['id'],
-                                question['title'] ?? 'Unknown',
+                                question['id'] is int ? question['id'] : int.tryParse(question['id']?.toString() ?? '0') ?? 0,
+                                question['title']?.toString() ?? 'Unknown',
                               ),
                             ),
                             onTap: () {

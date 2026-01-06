@@ -111,8 +111,8 @@ class AdminUsersPageState extends State<AdminUsersPage> {
                       itemCount: _users.length,
                       itemBuilder: (context, index) {
                         final user = _users[index];
-                        final isActive = user['isActive'] ?? true;
-                        final role = user['role'] ?? 'USER';
+                        final isActive = user['isActive'] == true || user['active'] == true;
+                        final role = user['role']?.toString() ?? 'USER';
 
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -142,7 +142,7 @@ class AdminUsersPageState extends State<AdminUsersPage> {
                               child: CircleAvatar(
                                 backgroundColor: Colors.transparent,
                                 child: Text(
-                                  (user['username'] ?? 'U')[0].toUpperCase(),
+                                  (user['username']?.toString() ?? 'U')[0].toUpperCase(),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -150,11 +150,11 @@ class AdminUsersPageState extends State<AdminUsersPage> {
                                 ),
                               ),
                             ),
-                            title: Text(user['username'] ?? 'Unknown'),
+                            title: Text(user['username']?.toString() ?? 'Unknown'),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(user['email'] ?? ''),
+                                Text(user['email']?.toString() ?? ''),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
@@ -209,8 +209,8 @@ class AdminUsersPageState extends State<AdminUsersPage> {
                                 ? IconButton(
                                     icon: const Icon(Icons.delete, color: Colors.red),
                                     onPressed: () => _deactivateUser(
-                                      user['id'],
-                                      user['username'] ?? 'Unknown',
+                                      user['id'] is int ? user['id'] : int.tryParse(user['id']?.toString() ?? '0') ?? 0,
+                                      user['username']?.toString() ?? 'Unknown',
                                     ),
                                   )
                                 : null,

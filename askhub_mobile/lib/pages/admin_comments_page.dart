@@ -165,7 +165,7 @@ class AdminCommentsPageState extends State<AdminCommentsPage> {
                               child: const Icon(Icons.comment, color: Colors.orange),
                             ),
                             title: Text(
-                              comment['targetTitle'] ?? 'Unknown Target',
+                              comment['targetTitle']?.toString() ?? 'Unknown Target',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -175,7 +175,7 @@ class AdminCommentsPageState extends State<AdminCommentsPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 4),
-                                Text(comment['content'] ?? ''),
+                                Text(comment['content']?.toString() ?? ''),
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
@@ -185,17 +185,17 @@ class AdminCommentsPageState extends State<AdminCommentsPage> {
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: comment['targetType'] == 'QUESTION'
+                                        color: comment['targetType']?.toString() == 'QUESTION'
                                             ? Colors.blue.shade100
                                             : Colors.green.shade100,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        comment['targetType'] ?? 'UNKNOWN',
+                                        comment['targetType']?.toString() ?? 'UNKNOWN',
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: comment['targetType'] == 'QUESTION'
+                                          color: comment['targetType']?.toString() == 'QUESTION'
                                               ? Colors.blue.shade700
                                               : Colors.green.shade700,
                                         ),
@@ -205,7 +205,7 @@ class AdminCommentsPageState extends State<AdminCommentsPage> {
                                     Icon(Icons.person, size: 14, color: Colors.grey.shade600),
                                     const SizedBox(width: 4),
                                     Text(
-                                      comment['username'] ?? 'Unknown',
+                                      comment['username']?.toString() ?? 'Unknown',
                                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                     ),
                                   ],
@@ -214,7 +214,9 @@ class AdminCommentsPageState extends State<AdminCommentsPage> {
                             ),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteComment(comment['id']),
+                              onPressed: () => _deleteComment(
+                                comment['id'] is int ? comment['id'] : int.tryParse(comment['id']?.toString() ?? '0') ?? 0,
+                              ),
                             ),
                           ),
                         );
