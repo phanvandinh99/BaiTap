@@ -188,26 +188,26 @@ class UserProfilePageState extends State<UserProfilePage> {
                         children: [
                           _buildStatCard(
                             title: 'Questions',
-                            value: '${user['questionsCount'] ?? 0}',
+                            value: _getIntValue(user['questionsCount']).toString(),
                             icon: Icons.help,
                             color: Colors.blue,
                           ),
                           _buildStatCard(
                             title: 'Answers',
-                            value: '${user['answersCount'] ?? 0}',
+                            value: _getIntValue(user['answersCount']).toString(),
                             icon: Icons.done,
                             color: Colors.green,
                           ),
                           _buildStatCard(
                             title: 'Comments',
-                            value: '${user['commentsCount'] ?? 0}',
+                            value: _getIntValue(user['commentsCount']).toString(),
                             icon: Icons.message,
                             color: Colors.orange,
                           ),
                           _buildStatCard(
-                            title: 'Votes',
-                            value: '${user['votesCount'] ?? 0}',
-                            icon: Icons.favorite,
+                            title: 'Reputation',
+                            value: _getIntValue(user['reputation']).toString(),
+                            icon: Icons.star,
                             color: Colors.purple,
                           ),
                         ],
@@ -221,6 +221,18 @@ class UserProfilePageState extends State<UserProfilePage> {
         },
       ),
     );
+  }
+
+  int _getIntValue(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value) ?? 0;
+    }
+    if (value is double) {
+      return value.toInt();
+    }
+    return 0;
   }
 
   Widget _buildStatCard({

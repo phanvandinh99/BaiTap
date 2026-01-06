@@ -27,15 +27,38 @@ class ApiService {
     await prefs.setInt('userId', userId);
   }
 
+  // Get current user role
+  static Future<String?> getCurrentUserRole() async {
+    final prefs = await _prefs;
+    return prefs.getString('userRole');
+  }
+
+  // Set current user role
+  static Future<void> setCurrentUserRole(String role) async {
+    final prefs = await _prefs;
+    await prefs.setString('userRole', role);
+  }
+
+  // Check if current user is admin
+  static Future<bool> isAdmin() async {
+    final role = await getCurrentUserRole();
+    return role == 'ADMIN';
+  }
+
   // Clear session
   static Future<void> logout() async {
     final prefs = await _prefs;
     await prefs.remove('userId');
+    await prefs.remove('userRole');
   }
 
   // Helper to get headers with user ID and admin flag
   Future<Map<String, String>> _getHeaders({bool isAdmin = false}) async {
     final userId = await getCurrentUserId();
+    // Auto-detect admin if not explicitly set
+    if (!isAdmin) {
+      isAdmin = await ApiService.isAdmin();
+    }
     return {
       'Content-Type': 'application/json',
       if (userId != null) 'X-User-Id': userId.toString(),
@@ -74,6 +97,10 @@ class ApiService {
     if (response.statusCode == 200) {
       final user = json.decode(response.body);
       await setCurrentUserId(user['id']);
+      // Save user role for admin check
+      if (user['role'] != null) {
+        await setCurrentUserRole(user['role']);
+      }
       return user;
     } else {
       throw Exception('Login failed: ${response.body}');
@@ -99,6 +126,47 @@ class ApiService {
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update user');
+    }
+  }
+
+  // Admin: Get all users
+  Future<List<dynamic>> getAllUsers() async {
+    final headers = await _getHeaders(isAdmin: true);
+    final response = await http.get(Uri.parse('$baseUrl/users'), headers: headers);
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load users');
+    }
+  }
+
+  // Admin: Deactivate user
+  Future<void> deactivateUser(int id) async {
+    final headers = await _getHeaders(isAdmin: true);
+    final response = await http.delete(Uri.parse('$baseUrl/users/$id'), headers: headers);
+    if (response.statusCode != 204) {
+      throw Exception('Failed to deactivate user');
+    }
+  }
+
+  // Admin: Get all users
+  Future<List<dynamic>> getAllUsers() async {
+    final headers = await _getHeaders(isAdmin: true);
+    final response = await http.get(Uri.parse('$baseUrl/users'), headers: headers);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data is List ? data : [];
+    } else {
+      throw Exception('Failed to load users');
+    }
+  }
+
+  // Admin: Deactivate user
+  Future<void> deactivateUser(int id) async {
+    final headers = await _getHeaders(isAdmin: true);
+    final response = await http.delete(Uri.parse('$baseUrl/users/$id'), headers: headers);
+    if (response.statusCode != 204) {
+      throw Exception('Failed to deactivate user');
     }
   }
 

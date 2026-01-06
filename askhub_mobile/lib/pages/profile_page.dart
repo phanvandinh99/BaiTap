@@ -146,30 +146,58 @@ class ProfilePageState extends State<ProfilePage> {
                 // Avatar Section
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  padding: const EdgeInsets.symmetric(vertical: 40),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.blue.shade600],
+                      colors: [
+                        Colors.blue.shade400,
+                        Colors.blue.shade600,
+                        Colors.blue.shade700,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundImage: (user['avatarUrl'] != null &&
-                                user['avatarUrl']!.isNotEmpty)
-                            ? NetworkImage(user['avatarUrl'])
-                            : null,
-                        child: (user['avatarUrl'] == null ||
-                                user['avatarUrl']!.isEmpty)
-                            ? Icon(
-                                Icons.person,
-                                size: 48,
-                                color: Colors.blue.shade600,
-                              )
-                            : null,
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 4,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          backgroundImage: (user['avatarUrl'] != null &&
+                                  user['avatarUrl']!.isNotEmpty)
+                              ? NetworkImage(user['avatarUrl'])
+                              : null,
+                          child: (user['avatarUrl'] == null ||
+                                  user['avatarUrl']!.isEmpty)
+                              ? Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.blue.shade600,
+                                )
+                              : null,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -237,58 +265,33 @@ class ProfilePageState extends State<ProfilePage> {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Card(
-                              child: ListTile(
-                                leading: const Icon(Icons.person),
-                                title: const Text('Full Name'),
-                                subtitle: Text(
-                                  user['fullName'] ?? 'Not set',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
+                            _buildInfoCard(
+                              icon: Icons.person,
+                              iconColor: Colors.blue,
+                              title: 'Full Name',
+                              value: user['fullName'] ?? 'Not set',
                             ),
-                            const SizedBox(height: 12),
-                            Card(
-                              child: ListTile(
-                                leading: const Icon(Icons.email),
-                                title: const Text('Email'),
-                                subtitle: Text(
-                                  user['email'] ?? 'Not set',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
+                            const SizedBox(height: 16),
+                            _buildInfoCard(
+                              icon: Icons.email,
+                              iconColor: Colors.green,
+                              title: 'Email',
+                              value: user['email'] ?? 'Not set',
                             ),
-                            const SizedBox(height: 12),
-                            Card(
-                              child: ListTile(
-                                leading: const Icon(Icons.description),
-                                title: const Text('Bio'),
-                                subtitle: Text(
-                                  user['bio'] ?? 'No bio',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
+                            const SizedBox(height: 16),
+                            _buildInfoCard(
+                              icon: Icons.description,
+                              iconColor: Colors.orange,
+                              title: 'Bio',
+                              value: user['bio'] ?? 'No bio',
+                              maxLines: 3,
                             ),
-                            const SizedBox(height: 12),
-                            Card(
-                              child: ListTile(
-                                leading: const Icon(Icons.calendar_today),
-                                title: const Text('Joined'),
-                                subtitle: Text(
-                                  user['createdAt'] ?? 'Unknown',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
+                            const SizedBox(height: 16),
+                            _buildInfoCard(
+                              icon: Icons.calendar_today,
+                              iconColor: Colors.purple,
+                              title: 'Joined',
+                              value: user['createdAt'] ?? 'Unknown',
                             ),
                           ],
                         ),
@@ -297,6 +300,65 @@ class ProfilePageState extends State<ProfilePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String value,
+    int maxLines = 1,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              iconColor.withValues(alpha: 0.05),
+            ],
+          ),
+        ),
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                color: Colors.black87,
+              ),
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
       ),
     );
   }

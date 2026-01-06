@@ -52,10 +52,6 @@ class TopicFormDialogState extends State<TopicFormDialog> {
       setState(() => _errorMessage = 'Topic name is required');
       return;
     }
-    if (_slugController.text.trim().isEmpty) {
-      setState(() => _errorMessage = 'Slug is required');
-      return;
-    }
 
     setState(() {
       _isLoading = true;
@@ -64,21 +60,27 @@ class TopicFormDialogState extends State<TopicFormDialog> {
 
     try {
       final apiService = ApiService();
+      // Auto-generate slug from topic name
+      final slug = _generateSlug(_nameController.text.trim());
+      
       if (widget.topic == null) {
         // Create new topic
         await apiService.createTopic(
           _nameController.text.trim(),
-          _slugController.text.trim(),
+          slug,
           _descriptionController.text.trim().isEmpty
               ? null
               : _descriptionController.text.trim(),
         );
       } else {
-        // Update existing topic
+        // Update existing topic - use existing slug or generate new one
+        final finalSlug = _slugController.text.trim().isNotEmpty 
+            ? _slugController.text.trim() 
+            : slug;
         await apiService.updateTopic(
           widget.topic!['id'],
           _nameController.text.trim(),
-          _slugController.text.trim(),
+          finalSlug,
           _descriptionController.text.trim().isEmpty
               ? null
               : _descriptionController.text.trim(),
@@ -137,24 +139,6 @@ class TopicFormDialogState extends State<TopicFormDialog> {
                 hintText: 'e.g., Flutter',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              onChanged: (value) {
-                if (_slugController.text.isEmpty || widget.topic == null) {
-                  _slugController.text = _generateSlug(value);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _slugController,
-              enabled: !_isLoading,
-              decoration: InputDecoration(
-                labelText: 'Slug (URL-friendly)',
-                hintText: 'e.g., flutter',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onChanged: (value) {
-                _slugController.text = _generateSlug(value);
-              },
             ),
             const SizedBox(height: 12),
             TextField(
