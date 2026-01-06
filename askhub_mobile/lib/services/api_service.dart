@@ -134,26 +134,6 @@ class ApiService {
     final headers = await _getHeaders(isAdmin: true);
     final response = await http.get(Uri.parse('$baseUrl/users'), headers: headers);
     if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load users');
-    }
-  }
-
-  // Admin: Deactivate user
-  Future<void> deactivateUser(int id) async {
-    final headers = await _getHeaders(isAdmin: true);
-    final response = await http.delete(Uri.parse('$baseUrl/users/$id'), headers: headers);
-    if (response.statusCode != 204) {
-      throw Exception('Failed to deactivate user');
-    }
-  }
-
-  // Admin: Get all users
-  Future<List<dynamic>> getAllUsers() async {
-    final headers = await _getHeaders(isAdmin: true);
-    final response = await http.get(Uri.parse('$baseUrl/users'), headers: headers);
-    if (response.statusCode == 200) {
       final data = json.decode(response.body);
       return data is List ? data : [];
     } else {

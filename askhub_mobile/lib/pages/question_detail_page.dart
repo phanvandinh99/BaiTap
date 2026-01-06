@@ -17,7 +17,6 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
   bool _isQuestionOwner = false;
   bool _isAdmin = false;
   int? _currentUserId;
-  Map<String, dynamic>? _questionData;
 
   @override
   void initState() {
@@ -138,7 +137,6 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
           // API returns nested object: {question: {...}, answers: [...], comments: [...]}
           final responseData = snapshot.data!;
           final question = responseData['question'] ?? responseData; // Support both nested and flat structure
-          _questionData = question;
           // Ensure proper type comparison (int to int)
           final questionUserId = question['userId'] is int 
               ? question['userId'] 
