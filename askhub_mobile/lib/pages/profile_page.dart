@@ -23,10 +23,24 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _userFuture = _apiService.getUser(widget.userId);
     _fullNameController = TextEditingController();
     _bioController = TextEditingController();
     _avatarUrlController = TextEditingController();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    _userFuture = _apiService.getUser(widget.userId).catchError((error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load user data: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      throw error;
+    });
   }
 
   @override
@@ -38,6 +52,8 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    if (!mounted) return;
+    
     setState(() => _isSaving = true);
     try {
       await _apiService.updateUser(widget.userId, {
@@ -52,15 +68,24 @@ class ProfilePageState extends State<ProfilePage> {
           _isSaving = false;
           _userFuture = _apiService.getUser(widget.userId);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile updated successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile: $e')),
+          SnackBar(
+            content: Text('Failed to update profile: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
@@ -77,9 +102,25 @@ class ProfilePageState extends State<ProfilePage> {
           if (!_isEditing)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () => setState(() => _isEditing = true),
+              onPressed: () {
+                if (mounted) {
+                  setState(() {
+                    _isEditing = true;
+                  });
+                }
+              },
             ),
-          if (_isEditing)
+          if (_isEditing) ...[
+            TextButton(
+              onPressed: _isSaving
+                  ? null
+                  : () {
+                      if (mounted) {
+                        setState(() => _isEditing = false);
+                      }
+                    },
+              child: const Text('Cancel'),
+            ),
             TextButton(
               onPressed: _isSaving ? null : _saveProfile,
               child: _isSaving
@@ -90,6 +131,7 @@ class ProfilePageState extends State<ProfilePage> {
                     )
                   : const Text('Save'),
             ),
+          ],
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
@@ -134,10 +176,15 @@ class ProfilePageState extends State<ProfilePage> {
 
           final user = snapshot.data!;
 
+          // Initialize controllers with user data only when not editing
           if (!_isEditing) {
-            _fullNameController.text = user['fullName'] ?? '';
-            _bioController.text = user['bio'] ?? '';
-            _avatarUrlController.text = user['avatarUrl'] ?? '';
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _fullNameController.text = user['fullName']?.toString() ?? '';
+                _bioController.text = user['bio']?.toString() ?? '';
+                _avatarUrlController.text = user['avatarUrl']?.toString() ?? '';
+              }
+            });
           }
 
           return SingleChildScrollView(
@@ -186,11 +233,14 @@ class ProfilePageState extends State<ProfilePage> {
                           radius: 50,
                           backgroundColor: Colors.white,
                           backgroundImage: (user['avatarUrl'] != null &&
-                                  user['avatarUrl']!.isNotEmpty)
-                              ? NetworkImage(user['avatarUrl'])
+                                  user['avatarUrl'].toString().isNotEmpty)
+                              ? NetworkImage(user['avatarUrl'].toString())
                               : null,
+                          onBackgroundImageError: (exception, stackTrace) {
+                            // Handle image loading error silently
+                          },
                           child: (user['avatarUrl'] == null ||
-                                  user['avatarUrl']!.isEmpty)
+                                  user['avatarUrl'].toString().isEmpty)
                               ? Icon(
                                   Icons.person,
                                   size: 50,

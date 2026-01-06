@@ -118,14 +118,22 @@ class ApiService {
   }
 
   Future<void> updateUser(int id, Map<String, dynamic> updates) async {
-    final headers = await _getHeaders();
-    final response = await http.put(
-      Uri.parse('$baseUrl/users/$id'),
-      headers: headers,
-      body: json.encode(updates),
-    );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update user');
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/$id'),
+        headers: headers,
+        body: json.encode(updates),
+      );
+      if (response.statusCode != 200) {
+        final errorBody = response.body;
+        throw Exception('Failed to update user: ${response.statusCode} - $errorBody');
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Failed to update user: $e');
     }
   }
 

@@ -4,8 +4,9 @@ import 'topic_form_dialog.dart';
 
 class TopicsListPage extends StatefulWidget {
   final bool isAdmin;
+  final bool hideFAB;
 
-  const TopicsListPage({super.key, this.isAdmin = false});
+  const TopicsListPage({super.key, this.isAdmin = false, this.hideFAB = false});
 
   @override
   State<TopicsListPage> createState() => TopicsListPageState();
@@ -223,7 +224,7 @@ class TopicsListPageState extends State<TopicsListPage> {
                         },
                       ),
                     ),
-      floatingActionButton: widget.isAdmin
+      floatingActionButton: (widget.isAdmin && !widget.hideFAB)
           ? FloatingActionButton(
               onPressed: () {
                 showDialog(

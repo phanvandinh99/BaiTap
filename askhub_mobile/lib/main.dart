@@ -7,6 +7,7 @@ import 'pages/question_form_dialog.dart';
 import 'pages/question_detail_page.dart';
 import 'pages/admin_dashboard_page.dart';
 import 'pages/notifications_page.dart';
+import 'pages/topic_form_dialog.dart';
 
 void main() {
   runApp(const MyApp());
@@ -416,18 +417,6 @@ class QuestionsListPageState extends State<QuestionsListPage> {
     _loadData();
   }
 
-  Future<Map<String, dynamic>> _getNotificationCount() async {
-    try {
-      if (widget.currentUserId == null) {
-        return {'unreadCount': 0};
-      }
-      final data = await _apiService.getNotifications(limit: 1);
-      return {'unreadCount': data['unreadCount'] ?? 0};
-    } catch (e) {
-      return {'unreadCount': 0};
-    }
-  }
-
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -471,173 +460,6 @@ class QuestionsListPageState extends State<QuestionsListPage> {
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
       );
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'AskHub',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          centerTitle: true,
-          elevation: 0,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.blue.shade600,
-                  Colors.blue.shade400,
-                ],
-              ),
-            ),
-          ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.blue.shade400,
-                    Colors.blue.shade300,
-                  ],
-                ),
-              ),
-              child: const TabBar(
-                indicatorColor: Colors.white,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white70,
-                tabs: [
-                  Tab(icon: Icon(Icons.question_answer), text: 'Questions'),
-                  Tab(icon: Icon(Icons.category), text: 'Topics'),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            // Notifications Icon with Badge
-            FutureBuilder<Map<String, dynamic>>(
-              future: _getNotificationCount(),
-              builder: (context, snapshot) {
-                final unreadCount = snapshot.data?['unreadCount'] ?? 0;
-                return Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications),
-                      tooltip: 'Notifications',
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const NotificationsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    if (unreadCount > 0)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 18,
-                            minHeight: 18,
-                          ),
-                          child: Text(
-                            unreadCount > 99 ? '99+' : '$unreadCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-            FutureBuilder<bool>(
-              future: ApiService.isAdmin(),
-              builder: (context, snapshot) {
-                if (snapshot.data == true) {
-                  return IconButton(
-                    icon: const Icon(Icons.admin_panel_settings),
-                    tooltip: 'Admin Dashboard',
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminDashboardPage(),
-                        ),
-                      );
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.person),
-              tooltip: 'My Profile',
-              onPressed: () {
-                if (widget.currentUserId != null) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ProfilePage(userId: widget.currentUserId!),
-                    ),
-                  );
-                }
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Logout',
-              onPressed: _logout,
-            ),
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            // Questions Tab
-            RefreshIndicator(
-              onRefresh: _loadData,
-              child: _buildQuestionsTab(),
-            ),
-            // Topics Tab
-            TopicsListPage(),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          tooltip: 'Ask a Question',
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => QuestionFormDialog(
-                topics: _topics,
-                onSave: (_) => _loadData(),
-              ),
-            );
-          },
-          child: const Icon(Icons.add),
-        ),
-      ),
-    );
   }
 
   Widget _buildQuestionsTab() {
@@ -730,8 +552,22 @@ class QuestionsListPageState extends State<QuestionsListPage> {
           )
         else if (_questions.isEmpty)
           SliverFillRemaining(
-            child: const Center(
-              child: Text('No questions found'),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inbox,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No questions yet',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
             ),
           )
         else
@@ -739,179 +575,58 @@ class QuestionsListPageState extends State<QuestionsListPage> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final question = _questions[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: InkWell(
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    title: Text(
+                      question['title'] ?? 'No title',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          question['content'] ?? 'No content',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.person, size: 14, color: Colors.grey.shade600),
+                            const SizedBox(width: 4),
+                            Text(
+                              question['username'] ?? question['userName'] ?? 'Unknown',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                            const SizedBox(width: 16),
+                            Icon(Icons.thumb_up, size: 14, color: Colors.grey.shade600),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${question['votes'] ?? 0}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                            const SizedBox(width: 16),
+                            Icon(Icons.visibility, size: 14, color: Colors.grey.shade600),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${question['viewCount'] ?? 0}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                     onTap: () {
-                      Navigator.push(
-                        context,
+                      Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => QuestionDetailPage(
+                          builder: (_) => QuestionDetailPage(
                             questionId: question['id'],
                           ),
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => QuestionDetailPage(
-                                questionId: question['id'],
-                              ),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title
-                              Text(
-                                question['title'] ?? '',
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.3,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 12),
-                              // Content Preview
-                              Text(
-                                question['content'] ?? '',
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: 14,
-                                  height: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              // Metadata Row
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // Topic Badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.blue.shade100,
-                                          Colors.blue.shade50,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Colors.blue.shade200,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.category,
-                                          size: 14,
-                                          color: Colors.blue.shade700,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          question['topicName'] ?? 'Unknown',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.blue.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Stats Row
-                                  Row(
-                                    children: [
-                                      // Answers count
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.shade50,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.comment,
-                                              size: 14,
-                                              color: Colors.green.shade700,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '${question['answerCount'] ?? 0}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.green.shade700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      // Views
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.shade50,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.visibility,
-                                              size: 14,
-                                              color: Colors.orange.shade700,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '${question['viewCount'] ?? 0}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.orange.shade700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
                 );
               },
@@ -921,4 +636,288 @@ class QuestionsListPageState extends State<QuestionsListPage> {
       ],
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Builder(
+        builder: (context) {
+          final tabController = DefaultTabController.of(context);
+          return _MainScaffold(
+            currentUserId: widget.currentUserId,
+            onLogout: _logout,
+            loadData: _loadData,
+            topics: _topics,
+            tabController: tabController,
+            buildQuestionsTab: _buildQuestionsTab,
+          );
+        },
+      ),
+    );
+  }
 }
+
+class _MainScaffold extends StatefulWidget {
+  final int? currentUserId;
+  final VoidCallback onLogout;
+  final Future<void> Function() loadData;
+  final List<dynamic> topics;
+  final TabController tabController;
+  final Widget Function() buildQuestionsTab;
+
+  const _MainScaffold({
+    required this.currentUserId,
+    required this.onLogout,
+    required this.loadData,
+    required this.topics,
+    required this.tabController,
+    required this.buildQuestionsTab,
+  });
+
+  @override
+  State<_MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<_MainScaffold> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  bool _isAdmin = false;
+  int _topicsKey = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = widget.tabController;
+    _checkAdminStatus();
+    _tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    setState(() {});
+  }
+
+  void _reloadTopics() {
+    if (mounted) {
+      setState(() {
+        _topicsKey++; // Change key to force rebuild
+      });
+    }
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final adminStatus = await ApiService.isAdmin();
+    if (mounted) {
+      setState(() {
+        _isAdmin = adminStatus;
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>> _getNotificationCount() async {
+    try {
+      if (widget.currentUserId == null) {
+        return {'unreadCount': 0};
+      }
+      final apiService = ApiService();
+      final data = await apiService.getNotifications(limit: 1);
+      return {'unreadCount': data['unreadCount'] ?? 0};
+    } catch (e) {
+      return {'unreadCount': 0};
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'AskHub',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blue.shade600,
+                  Colors.blue.shade400,
+                ],
+              ),
+            ),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.blue.shade400,
+                    Colors.blue.shade300,
+                  ],
+                ),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                tabs: const [
+                  Tab(icon: Icon(Icons.question_answer), text: 'Questions'),
+                  Tab(icon: Icon(Icons.category), text: 'Topics'),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            // Notifications Icon with Badge
+            FutureBuilder<Map<String, dynamic>>(
+              future: _getNotificationCount(),
+              builder: (context, snapshot) {
+                final unreadCount = snapshot.data?['unreadCount'] ?? 0;
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications),
+                      tooltip: 'Notifications',
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
+                          child: Text(
+                            unreadCount > 99 ? '99+' : '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            FutureBuilder<bool>(
+              future: ApiService.isAdmin(),
+              builder: (context, snapshot) {
+                if (snapshot.data == true) {
+                  return IconButton(
+                    icon: const Icon(Icons.admin_panel_settings),
+                    tooltip: 'Admin Dashboard',
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AdminDashboardPage(),
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.person),
+              tooltip: 'My Profile',
+              onPressed: () {
+                if (widget.currentUserId != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProfilePage(userId: widget.currentUserId!),
+                    ),
+                  );
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: widget.onLogout,
+            ),
+          ],
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Questions Tab
+            RefreshIndicator(
+              onRefresh: widget.loadData,
+              child: widget.buildQuestionsTab(),
+            ),
+            // Topics Tab
+            TopicsListPage(
+              key: ValueKey('topics_$_topicsKey'),
+              isAdmin: _isAdmin,
+              hideFAB: true, // Hide FAB in TopicsListPage since we have one in main.dart
+            ),
+          ],
+        ),
+        floatingActionButton: _tabController.index == 0
+            ? FloatingActionButton(
+                tooltip: 'Ask a Question',
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => QuestionFormDialog(
+                      topics: widget.topics,
+                      onSave: (_) => widget.loadData(),
+                    ),
+                  );
+                },
+                child: const Icon(Icons.add),
+              )
+            : (_isAdmin
+                ? FloatingActionButton(
+                    tooltip: 'Create Topic',
+                    onPressed: () async {
+                      await showDialog(
+                        context: context,
+                        builder: (context) => TopicFormDialog(
+                          onSave: () {
+                            // Reload topics after saving
+                            _reloadTopics();
+                          },
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.add),
+                  )
+                : null),
+    );
+  }
+}
+
