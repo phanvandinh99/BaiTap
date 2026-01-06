@@ -229,7 +229,7 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
                           Icon(Icons.calendar_today, size: 16, color: Colors.grey.shade600),
                           const SizedBox(width: 4),
                           Text(
-                            _formatDate(question['createdAt']?.toString()),
+                            _formatDate(question['createdAt']),
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                           const SizedBox(width: 16),
@@ -639,15 +639,43 @@ class QuestionDetailPageState extends State<QuestionDetailPage> {
 
   String _formatDate(dynamic dateValue) {
     if (dateValue == null) return 'Unknown';
-    if (dateValue is String) {
+    
+    DateTime? date;
+    
+    // Handle timestamp (milliseconds since epoch)
+    if (dateValue is int) {
       try {
-        // Try to parse and format the date string
-        final date = DateTime.parse(dateValue);
-        return '${date.day}/${date.month}/${date.year}';
+        date = DateTime.fromMillisecondsSinceEpoch(dateValue);
       } catch (e) {
-        return dateValue; // Return as-is if parsing fails
+        return dateValue.toString();
       }
     }
+    // Handle string that might be a number (timestamp as string)
+    else if (dateValue is String) {
+      // Try parsing as timestamp first
+      final timestamp = int.tryParse(dateValue);
+      if (timestamp != null) {
+        try {
+          date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        } catch (e) {
+          // Fall through to try parsing as date string
+        }
+      }
+      
+      // Try parsing as ISO date string
+      if (date == null) {
+        try {
+          date = DateTime.parse(dateValue);
+        } catch (e) {
+          return dateValue; // Return as-is if parsing fails
+        }
+      }
+    }
+    
+    if (date != null) {
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    }
+    
     return 'Unknown';
   }
 }

@@ -254,24 +254,43 @@ class UserProfilePageState extends State<UserProfilePage> {
 
   String _formatDate(dynamic dateValue) {
     if (dateValue == null) return 'Unknown';
+    
+    DateTime? date;
+    
     // Handle timestamp (milliseconds since epoch)
     if (dateValue is int) {
       try {
-        final date = DateTime.fromMillisecondsSinceEpoch(dateValue);
-        return '${date.day}/${date.month}/${date.year}';
+        date = DateTime.fromMillisecondsSinceEpoch(dateValue);
       } catch (e) {
         return dateValue.toString();
       }
     }
-    // Handle string date
-    if (dateValue is String) {
-      try {
-        final date = DateTime.parse(dateValue);
-        return '${date.day}/${date.month}/${date.year}';
-      } catch (e) {
-        return dateValue;
+    // Handle string that might be a number (timestamp as string)
+    else if (dateValue is String) {
+      // Try parsing as timestamp first
+      final timestamp = int.tryParse(dateValue);
+      if (timestamp != null) {
+        try {
+          date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        } catch (e) {
+          // Fall through to try parsing as date string
+        }
+      }
+      
+      // Try parsing as ISO date string
+      if (date == null) {
+        try {
+          date = DateTime.parse(dateValue);
+        } catch (e) {
+          return dateValue;
+        }
       }
     }
+    
+    if (date != null) {
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    }
+    
     return dateValue.toString();
   }
 

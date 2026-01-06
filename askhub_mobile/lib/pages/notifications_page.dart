@@ -159,15 +159,47 @@ class NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  String _formatDate(String? dateString) {
-    if (dateString == null) return 'Unknown';
-    try {
-      final date = DateTime.parse(dateString);
+  String _formatDate(dynamic dateValue) {
+    if (dateValue == null) return 'Unknown';
+    
+    DateTime? date;
+    
+    // Handle timestamp (milliseconds since epoch)
+    if (dateValue is int) {
+      try {
+        date = DateTime.fromMillisecondsSinceEpoch(dateValue);
+      } catch (e) {
+        return dateValue.toString();
+      }
+    }
+    // Handle string that might be a number (timestamp as string)
+    else if (dateValue is String) {
+      // Try parsing as timestamp first
+      final timestamp = int.tryParse(dateValue);
+      if (timestamp != null) {
+        try {
+          date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        } catch (e) {
+          // Fall through to try parsing as date string
+        }
+      }
+      
+      // Try parsing as ISO date string
+      if (date == null) {
+        try {
+          date = DateTime.parse(dateValue);
+        } catch (e) {
+          return dateValue;
+        }
+      }
+    }
+    
+    if (date != null) {
       final now = DateTime.now();
       final difference = now.difference(date);
 
       if (difference.inDays > 7) {
-        return '${date.day}/${date.month}/${date.year}';
+        return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
       } else if (difference.inDays > 0) {
         return '${difference.inDays}d ago';
       } else if (difference.inHours > 0) {
@@ -177,9 +209,9 @@ class NotificationsPageState extends State<NotificationsPage> {
       } else {
         return 'Just now';
       }
-    } catch (e) {
-      return dateString;
     }
+    
+    return 'Unknown';
   }
 
   @override
@@ -370,7 +402,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                                   const SizedBox(width: 4),
                                                   Text(
                                                     _formatDate(
-                                                        notification['createdAt']?.toString()),
+                                                        notification['createdAt']),
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       color: Colors.grey.shade600,
