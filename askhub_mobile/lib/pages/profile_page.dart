@@ -276,7 +276,7 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        user['username'] ?? 'Unknown',
+                        user['username']?.toString() ?? 'Unknown',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -285,7 +285,7 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        user['email'] ?? '',
+                        user['email']?.toString() ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -344,21 +344,21 @@ class ProfilePageState extends State<ProfilePage> {
                               icon: Icons.person,
                               iconColor: Colors.blue,
                               title: 'Full Name',
-                              value: user['fullName'] ?? 'Not set',
+                              value: user['fullName']?.toString() ?? 'Not set',
                             ),
                             const SizedBox(height: 16),
                             _buildInfoCard(
                               icon: Icons.email,
                               iconColor: Colors.green,
                               title: 'Email',
-                              value: user['email'] ?? 'Not set',
+                              value: user['email']?.toString() ?? 'Not set',
                             ),
                             const SizedBox(height: 16),
                             _buildInfoCard(
                               icon: Icons.description,
                               iconColor: Colors.orange,
                               title: 'Bio',
-                              value: user['bio'] ?? 'No bio',
+                              value: user['bio']?.toString() ?? 'No bio',
                               maxLines: 3,
                             ),
                             const SizedBox(height: 16),
